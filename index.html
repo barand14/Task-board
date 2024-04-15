@@ -25,7 +25,7 @@
       <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#formModal">Add Task</button>
     </div>
     <!-- Todo: Create a modal with a form to add tasks -->
-    <div class="modal fade" id="formModal" tabindex="-1" aria-labelledby="formModalLabel" arie-hidden="true"
+    <div class="modal fade" id="formModal" tabindex="-1" aria-labelledby="formModalLabel" arie-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -55,7 +55,7 @@
       <div class="col-12 col-lg-4 d-flex">
         <div id="to-do" class="card border-light mb-3 lane flex-grow-1">
           <div class="card-header bg-white">
-            <h2 class="card-title mb-1">To Do</h2>
+            <h2 class="card-title mb-1">To Do</h2 class= lane>
           </div>
           <div class="card-body bg-light">
             <div id="todo-cards"></div>
@@ -65,7 +65,7 @@
       <div class="col-12 col-lg-4 d-flex">
         <div id="in-progress" class="card border-light mb-3 lane flex-grow-1">
           <div class="card-header bg-white">
-            <h2 class="card-title mb-1">In Progress</h2>
+            <h2 class="card-title mb-1">In Progress</h2 class= lane>
           </div>
           <div class="card-body bg-light">
             <div id="in-progress-cards"></div>
@@ -75,7 +75,7 @@
         <div class="col-12 col-lg-4 d-flex">
           <div id="done" class="card border-light mb-3 lane flex-grow-1">
             <div class="card-header bg-white">
-              <h2 class="card-title mb-1">Done</h2>
+              <h2 class="card-title mb-1">Done</h2 class= lane>
             </div>
             <div class="card-body bg-light">
               <div id="done-cards"></div>
@@ -93,7 +93,15 @@
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.3/dayjs.min.js"
     integrity="sha256-iu/zLUB+QgISXBLCW/mcDi/rnf4m4uEDO0wauy76x7U=" crossorigin="anonymous"></script>
 
-  <script src="script.js"></script>
+  <script src="script.js">
+    try {
+  taskList = JSON.parse(localStorage.getItem("tasks")) || [];
+  nextId = JSON.parse(localStorage.getItem("nextId")) || 1;
+} catch (error) {
+  console.error("Error accessing localStorage:", error);
+  // Optionally display an error message to the user
+}
+  </script>
 </body>
 
 </html>

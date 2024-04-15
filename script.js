@@ -1,91 +1,146 @@
 // Retrieve tasks and nextId from localStorage
-let taskList = JSON.parse(localStorage.getItem("tasks")) || [];
-let nextId = JSON.parse(localStorage.getItem("nextId")) || 1;
-
-// Todo: create a function to generate a unique task id
 function generateTaskId() {
-  const randomId = Math.floor(Math.random() * 1000) + 1;
-  return randomId;
+  return nextId++; // Use a sequential ID generator
 }
 
-// Todo: create a function to create a task card
+// 2. Create Task Card
 function createTaskCard(task) {
-  const card = document.createElement("div");
-  card.classList.add("card", "mb-2"); // Add Bootstrap card classes
-
-  const cardHeader = document.createElement("div");
-  cardHeader.classList.add("card-header", "bg-light");
-  cardHeader.textContent = task.title;
-  card.appendChild(cardHeader);
-
-  const cardBody = document.createElement("div");
-  cardBody.classList.add("card-body");
-  cardBody.textContent = task.description;
-  card.appendChild(cardBody);
-
-
-  // Set draggable attribute for drag-and-drop functionality (optional)
-  card.setAttribute("draggable", "true");
-  card.addEventListener("dragstart", handleDragStart); // Add event listener for drag start
-
-  return card;
-}
-
-// Todo: create a function to render the task list and make cards draggable
-function renderTaskList() {
-  for (const card of taskList) {
-    if (card.status === "toDo") {
-      $("#todo-card").append(createTaskCard(card));
-    } else if (card.status === "inProgress") {
-      $("#in-progress-cards").append(createTaskCard(card));
-    } else {
-      $("#done-cards").append(createTaskCard)(card);
-    }
+  const taskCard = $('<div>')
+  .addClass('card w-75 task-card draggable my-3')
+  .attr('data-task-id', task.id);
+  const cardHeader = $('<div>').addClass('card-header h4').text(task.title);
+  const cardBody = $('<div>').addClass('card-body');
+  const cardDescription = $('<p>').addClass('card-text').text(task.description);
+  const cardDueDate = $('<p>').addClass('card-text').text(task.dueDate);
+  const cardDeleteBtn = $('<button>')
+  .addClass('btn btn-danger delete')
+  .text('Delete')
+  .attr('data-task-id', task.id);
+  cardDeleteBtn.on('click', handleDeleteTask);
+  
+  // set card background color based on due date
+  if (task.dueDate && task.status !== 'done') {
+  const now = dayjs();
+  const taskDueDate = dayjs(task.dueDate, 'DD/MM/YYYY');
+  if (now.isSame(taskDueDate, 'day')) {
+  taskCard.addClass('bg-warning text-white');
+  } else if (now.isAfter(taskDueDate)) {
+  taskCard.addClass('bg-danger text-white');
+  cardDeleteBtn.addClass('border-light');
   }
-  $("#drag").draggable();
+  }
+  
+  // append card elements
+  cardBody.append(cardDescription, cardDueDate, cardDeleteBtn);
+  taskCard.append(cardHeader, cardBody);
+  
+  return taskCard;
 }
-// Make lanes droppable
-//makeLanesDroppable();
 
-// Todo: create a function to handle adding a new task
+// 3. Render Task List
+function renderTaskList() {
+  $("#todo-cards, #inProgress-cards, #done-cards").empty(); // Clear existing tasks
+
+  taskList.forEach(task => {
+    //const laneId = "#" + task.status;
+    //$(laneId).append(createTaskCard(task));
+
+  if(task.status === "in-progress"){
+    $("#inProgress-cards").append(createTaskCard(task))
+  }
+  else if(task.status === "done") {
+    $("#done").append(createTaskCard(task))
+  }
+
+  else {
+    $("#todo-cards").append(createTaskCard(task))
+
+  }
+
+  });
+
+}
+
+// 4. Make Lanes Droppable
+function makeLanesDroppable() {
+  $(".lane").droppable({ // Correct selector for lanes
+    accept: ".card",
+    drop: handleDrop,
+  });
+}
+
+// 5. Handle Add Task
 function handleAddTask(event) {
-  event.preventDefault(); // Prevent default form submission
+  event.preventDefault();
 
-  const title = document.getElementById("task-title").value.trim();
-  const description = document.getElementById("task-description").value.trim();
+  const title = $("#task-title").val().trim();
+  const description = $("#task-description").val().trim();
 
   if (title) {
     const newTask = {
       id: generateTaskId(),
       title,
       description,
-      status: "to-do", // Default status
+      status: "todo",
     };
     taskList.push(newTask);
-    localStorage.setItem("tasks", JSON.stringify(taskList)); // Update localStorage
+    localStorage.setItem("tasks", JSON.stringify(taskList));
 
-    renderTaskList(); // Update UI with the new task
+    console.log(newTask)
 
-    // Clear form fields (optional)
-    document.getElementById("task-title").value = "title";
-    document.getElementById("task-description").value = "description";
+    renderTaskList();
+    
+    // Clear form fields
+    $("#task-title").val("");
+    $("#task-description").val("");
   } else {
     alert("Please enter a task title!");
   }
 }
 
-// Todo: create a function to handle deleting a task
-function handleDeleteTask() {
-  const taskIndex = taskList.findIndex((task) => task.id === taskId);
-  if (taskIndex !== -1) {
-    taskList.splice(taskIndex, 1);
-    localStorage.setItem("tasks", JSON.stringify(taskList)); // Update localStorage
-    renderTaskList(); // Update UI with the deleted task
+// 6. Handle Delete Task
+function handleDeleteTask(droppedTaskId, newStatus) {
+  const droppedTaskIndex = taskList.findIndex(task => task.id === droppedTaskId);
+  if (droppedTaskIndex !== -1) {
+    taskList[droppedTaskIndex].status = newStatus;
+    localStorage.setItem("tasks", JSON.stringify(taskList));
+    renderTaskList();
+  } else {
+    console.error(`Task with ID "${droppedTaskId}" not found in tasklist`);
   }
 }
 
-// Todo: create a function to handle dropping a task into a new status lane
-function handleDrop() {}
+// 7. Handle Drop
+function handleDrop(event, ui) {
+  const droppedTaskId = ui.draggable.data("task-id");
+  const newLaneId = $(this).attr("id");
 
-// Todo: when the page loads, render the task list, add event listeners, make lanes droppable, and make the due date field a date picker
-$(document).ready(function () {});
+  let newStatus;
+  switch (newLaneId) {
+    case "todo":
+      newStatus = "todo";
+      break;
+    case "inProgress":
+      newStatus = "inProgress";
+      break;
+    case "done":
+      newStatus = "done";
+      break;
+    default:
+      console.error("Invalid lane ID");
+      return;
+  }
+
+  handleDeleteTask(droppedTaskId, newStatus); // Update task status
+}
+
+// 8. Document Ready
+$(document).ready(function () {
+  taskList = JSON.parse(localStorage.getItem("tasks")) || [];
+  nextId = JSON.parse(localStorage.getItem("nextId")) || 1;
+
+  $("#task-form").on("submit", handleAddTask)
+
+  renderTaskList();
+  makeLanesDroppable();
+});
