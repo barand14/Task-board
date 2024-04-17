@@ -1,4 +1,4 @@
-// Retrieve tasks and nextId from localStorage
+ // Retrieve tasks and nextId from localStorage
 function generateTaskId() {
   return nextId++; // Use a sequential ID generator
 }
@@ -42,8 +42,8 @@ function renderTaskList() {
   $("#todo-cards, #inProgress-cards, #done-cards").empty(); // Clear existing tasks
 
   taskList.forEach(task => {
-    //const laneId = "#" + task.status;
-    //$(laneId).append(createTaskCard(task));
+    const laneId = "#" + task.status;
+    $(laneId).append(createTaskCard(task));
 
   if(task.status === "in-progress"){
     $("#inProgress-cards").append(createTaskCard(task))
@@ -112,6 +112,7 @@ function handleDeleteTask(droppedTaskId, newStatus) {
 
 // 7. Handle Drop
 function handleDrop(event, ui) {
+  event.preventDefault();
   const droppedTaskId = ui.draggable.data("task-id");
   const newLaneId = $(this).attr("id");
 
@@ -131,7 +132,19 @@ function handleDrop(event, ui) {
       return;
   }
 
-  handleDeleteTask(droppedTaskId, newStatus); // Update task status
+  updateTaskStatus(droppedTaskId, newStatus); // Update task status
+}
+
+// New function to update task status
+function updateTaskStatus(taskId, newStatus) {
+  const taskIndex = taskList.findIndex(task => task.id === taskId);
+  if (taskIndex !== -1) {
+    taskList[taskIndex].status = newStatus;
+    localStorage.setItem("tasks", JSON.stringify(taskList));
+    renderTaskList();
+  } else {
+    console.error(`Task with ID "${taskId}" not found in tasklist`);
+  }
 }
 
 // 8. Document Ready
