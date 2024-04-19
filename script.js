@@ -1,6 +1,18 @@
- // Retrieve tasks and nextId from localStorage
+let nextId = JSON.parse(localStorage.getItem("nextId"))
+
+// Retrieve tasks and nextId from localStorage
 function generateTaskId() {
-  return nextId++; // Use a sequential ID generator
+  if(nextId === null) {
+    nextId = 0
+  }
+
+  else {
+       nextId++; // Use a sequential ID generator
+  }
+  localStorage.setItem("nextId", JSON.stringify(nextId))
+
+  return nextId
+
 }
 
 // 2. Create Task Card
@@ -39,17 +51,17 @@ function createTaskCard(task) {
 
 // 3. Render Task List
 function renderTaskList() {
-  $("#todo-cards, #inProgress-cards, #done-cards").empty(); // Clear existing tasks
+  $("#todo-cards, #in-progress-cards, #done-cards").empty(); // Clear existing tasks
 
   taskList.forEach(task => {
-    const laneId = "#" + task.status;
-    $(laneId).append(createTaskCard(task));
+    // const laneId = "#" + task.status;
+    // $(laneId).append(createTaskCard(task));
 
   if(task.status === "in-progress"){
-    $("#inProgress-cards").append(createTaskCard(task))
+    $("#in-progress-cards").append(createTaskCard(task))
   }
   else if(task.status === "done") {
-    $("#done").append(createTaskCard(task))
+    $("#done-cards").append(createTaskCard(task))
   }
 
   else {
@@ -59,15 +71,30 @@ function renderTaskList() {
 
   });
 
+  $('.draggable').draggable({
+    opacity: 0.7,
+    zIndex: 100,
+    // function to clone the card being dragged so that the original card remains in place
+    helper: function (e) {
+    // check of the target of the drag event is the card itself or a child element if it is the card itself, clone it, otherwise find the parent card and clone that
+    const original = $(e.target).hasClass('ui-draggable')
+    ? $(e.target)
+    : $(e.target).closest('.ui-draggable');
+    return original.clone().css({
+    maxWidth: original.outerWidth(),
+    });
+    },
+    });
+
 }
 
 // 4. Make Lanes Droppable
-function makeLanesDroppable() {
-  $(".lane").droppable({ // Correct selector for lanes
-    accept: ".card",
-    drop: handleDrop,
-  });
-}
+// function makeLanesDroppable() {
+//   $(".lane").droppable({ // Correct selector for lanes
+//     accept: ".card",
+//     drop: handleDrop,
+//   });
+// }
 
 // 5. Handle Add Task
 function handleAddTask(event) {
@@ -114,15 +141,17 @@ function handleDeleteTask(droppedTaskId, newStatus) {
 function handleDrop(event, ui) {
   event.preventDefault();
   const droppedTaskId = ui.draggable.data("task-id");
+  console.log(droppedTaskId)
   const newLaneId = $(this).attr("id");
+  console.log(newLaneId)
 
   let newStatus;
   switch (newLaneId) {
-    case "todo":
-      newStatus = "todo";
+    case "to-do":
+      newStatus = "to-do";
       break;
-    case "inProgress":
-      newStatus = "inProgress";
+    case "in-progress":
+      newStatus = "in-progress";
       break;
     case "done":
       newStatus = "done";
@@ -153,7 +182,10 @@ $(document).ready(function () {
   nextId = JSON.parse(localStorage.getItem("nextId")) || 1;
 
   $("#task-form").on("submit", handleAddTask)
-
+  $(".lane").droppable({ // Correct selector for lanes
+    accept: ".draggable",
+    drop: handleDrop,
+  });
   renderTaskList();
-  makeLanesDroppable();
+  //makeLanesDroppable();
 });
