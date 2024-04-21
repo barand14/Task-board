@@ -126,14 +126,16 @@ function handleAddTask(event) {
 }
 
 // 6. Handle Delete Task
-function handleDeleteTask(droppedTaskId, newStatus) {
-  const droppedTaskIndex = taskList.findIndex(task => task.id === droppedTaskId);
-  if (droppedTaskIndex !== -1) {
-    taskList[droppedTaskIndex].status = newStatus;
+function handleDeleteTask(event) {
+  const taskId = $(event.target).data('task-id');
+  const taskIndex = taskList.findIndex(task => task.id === taskId);
+  if (taskIndex !== -1) {
+    taskList.splice(taskIndex, 1);
     localStorage.setItem("tasks", JSON.stringify(taskList));
     renderTaskList();
   } else {
-    console.error(`Task with ID "${droppedTaskId}" not found in tasklist`);
+    console.error(`Task with ID "${taskId}" not found in tasklist`);
+    console.log(taskList);
   }
 }
 
